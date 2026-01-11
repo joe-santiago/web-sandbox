@@ -1,0 +1,321 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+    font-family: 'Georgia', serif;
+}
+
+/* Hint text */
+.hint {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 13px;
+    text-align: center;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+    z-index: 50;
+}
+
+.hint.hidden {
+    opacity: 0;
+}
+
+/* 3D Carousel Container */
+.carousel-container {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    perspective: 1800px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+/* The rotating track */
+.carousel-track {
+    position: relative;
+    width: 100px;
+    height: 150px;
+    transform-style: preserve-3d;
+    transition: transform 1s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* Individual card containers */
+.carousel-slide {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 280px;
+    height: 200px;
+    margin-left: -140px;
+    margin-top: -100px;
+    transform-style: preserve-3d;
+    cursor: pointer;
+    transition:
+        transform 0.8s cubic-bezier(0.23, 1, 0.32, 1),
+        opacity 0.5s ease,
+        filter 0.5s ease;
+}
+
+/* Hover state - subtle elevation */
+.carousel-slide:hover:not(.dimmed) {
+    transform: var(--base-transform) translateZ(80px) !important;
+}
+
+/* Dimmed state when another card is focused */
+.carousel-slide.dimmed {
+    opacity: 0.15;
+    filter: blur(4px);
+    pointer-events: none;
+}
+
+/* Focused state - card comes forward */
+.carousel-slide.focused {
+    z-index: 200;
+}
+
+/* 3D positioning - 12 slides at 30° intervals */
+.carousel-slide:nth-child(1) { --base-transform: rotateY(0deg) translateZ(500px); transform: var(--base-transform); }
+.carousel-slide:nth-child(2) { --base-transform: rotateY(30deg) translateZ(500px); transform: var(--base-transform); }
+.carousel-slide:nth-child(3) { --base-transform: rotateY(60deg) translateZ(500px); transform: var(--base-transform); }
+.carousel-slide:nth-child(4) { --base-transform: rotateY(90deg) translateZ(500px); transform: var(--base-transform); }
+.carousel-slide:nth-child(5) { --base-transform: rotateY(120deg) translateZ(500px); transform: var(--base-transform); }
+.carousel-slide:nth-child(6) { --base-transform: rotateY(150deg) translateZ(500px); transform: var(--base-transform); }
+.carousel-slide:nth-child(7) { --base-transform: rotateY(180deg) translateZ(500px); transform: var(--base-transform); }
+.carousel-slide:nth-child(8) { --base-transform: rotateY(210deg) translateZ(500px); transform: var(--base-transform); }
+.carousel-slide:nth-child(9) { --base-transform: rotateY(240deg) translateZ(500px); transform: var(--base-transform); }
+.carousel-slide:nth-child(10) { --base-transform: rotateY(270deg) translateZ(500px); transform: var(--base-transform); }
+.carousel-slide:nth-child(11) { --base-transform: rotateY(300deg) translateZ(500px); transform: var(--base-transform); }
+.carousel-slide:nth-child(12) { --base-transform: rotateY(330deg) translateZ(500px); transform: var(--base-transform); }
+
+/* Focused transforms - come much closer to viewer */
+.carousel-slide.focused:nth-child(1) { transform: rotateY(0deg) translateZ(900px); }
+.carousel-slide.focused:nth-child(2) { transform: rotateY(30deg) translateZ(900px); }
+.carousel-slide.focused:nth-child(3) { transform: rotateY(60deg) translateZ(900px); }
+.carousel-slide.focused:nth-child(4) { transform: rotateY(90deg) translateZ(900px); }
+.carousel-slide.focused:nth-child(5) { transform: rotateY(120deg) translateZ(900px); }
+.carousel-slide.focused:nth-child(6) { transform: rotateY(150deg) translateZ(900px); }
+.carousel-slide.focused:nth-child(7) { transform: rotateY(180deg) translateZ(900px); }
+.carousel-slide.focused:nth-child(8) { transform: rotateY(210deg) translateZ(900px); }
+.carousel-slide.focused:nth-child(9) { transform: rotateY(240deg) translateZ(900px); }
+.carousel-slide.focused:nth-child(10) { transform: rotateY(270deg) translateZ(900px); }
+.carousel-slide.focused:nth-child(11) { transform: rotateY(300deg) translateZ(900px); }
+.carousel-slide.focused:nth-child(12) { transform: rotateY(330deg) translateZ(900px); }
+
+/* Flip card structure */
+.flip-card {
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.flip-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.7s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* 45-degree rotation states */
+.flip-card[data-rotation="0"] .flip-card-inner { transform: rotateY(0deg); }
+.flip-card[data-rotation="45"] .flip-card-inner { transform: rotateY(45deg); }
+.flip-card[data-rotation="90"] .flip-card-inner { transform: rotateY(90deg); }
+.flip-card[data-rotation="135"] .flip-card-inner { transform: rotateY(135deg); }
+.flip-card[data-rotation="180"] .flip-card-inner { transform: rotateY(180deg); }
+.flip-card[data-rotation="225"] .flip-card-inner { transform: rotateY(225deg); }
+.flip-card[data-rotation="270"] .flip-card-inner { transform: rotateY(270deg); }
+.flip-card[data-rotation="315"] .flip-card-inner { transform: rotateY(315deg); }
+
+.flip-card-front,
+.flip-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow:
+        0 25px 50px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.flip-card-front {
+    transform: translateZ(3px);
+    background: #222;
+}
+
+.flip-card-back {
+    transform: rotateY(180deg) translateZ(3px);
+    background: #f5f0e6;
+}
+
+/* Paper edge effect */
+.flip-card-inner::before,
+.flip-card-inner::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    width: 6px;
+    height: 100%;
+    background: linear-gradient(to right,
+        #b8a88a 0%,
+        #f5f0e6 20%,
+        #ebe5d9 50%,
+        #f5f0e6 80%,
+        #b8a88a 100%
+    );
+    border-radius: 1px;
+}
+
+.flip-card-inner::before {
+    left: 0;
+    transform: rotateY(-90deg) translateZ(3px);
+    transform-origin: left center;
+}
+
+.flip-card-inner::after {
+    right: 0;
+    transform: rotateY(90deg) translateZ(3px);
+    transform-origin: right center;
+}
+
+/* Images */
+.flip-card-front img,
+.flip-card-back img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Navigation Buttons */
+.nav-btn {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+}
+
+.nav-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.nav-btn.prev {
+    left: 30px;
+}
+
+.nav-btn.next {
+    right: 30px;
+}
+
+/* Hide nav when card is focused */
+.nav-btn.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Dot Indicators */
+.carousel-dots {
+    position: fixed;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    z-index: 100;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.dot:hover {
+    background: rgba(255, 255, 255, 0.6);
+}
+
+.dot.active {
+    background: #fff;
+    transform: scale(1.4);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .carousel-container {
+        perspective: 1400px;
+    }
+
+    .carousel-slide {
+        width: 220px;
+        height: 160px;
+        margin-left: -110px;
+        margin-top: -80px;
+    }
+
+    .carousel-slide:nth-child(1) { --base-transform: rotateY(0deg) translateZ(380px); transform: var(--base-transform); }
+    .carousel-slide:nth-child(2) { --base-transform: rotateY(30deg) translateZ(380px); transform: var(--base-transform); }
+    .carousel-slide:nth-child(3) { --base-transform: rotateY(60deg) translateZ(380px); transform: var(--base-transform); }
+    .carousel-slide:nth-child(4) { --base-transform: rotateY(90deg) translateZ(380px); transform: var(--base-transform); }
+    .carousel-slide:nth-child(5) { --base-transform: rotateY(120deg) translateZ(380px); transform: var(--base-transform); }
+    .carousel-slide:nth-child(6) { --base-transform: rotateY(150deg) translateZ(380px); transform: var(--base-transform); }
+    .carousel-slide:nth-child(7) { --base-transform: rotateY(180deg) translateZ(380px); transform: var(--base-transform); }
+    .carousel-slide:nth-child(8) { --base-transform: rotateY(210deg) translateZ(380px); transform: var(--base-transform); }
+    .carousel-slide:nth-child(9) { --base-transform: rotateY(240deg) translateZ(380px); transform: var(--base-transform); }
+    .carousel-slide:nth-child(10) { --base-transform: rotateY(270deg) translateZ(380px); transform: var(--base-transform); }
+    .carousel-slide:nth-child(11) { --base-transform: rotateY(300deg) translateZ(380px); transform: var(--base-transform); }
+    .carousel-slide:nth-child(12) { --base-transform: rotateY(330deg) translateZ(380px); transform: var(--base-transform); }
+
+    .carousel-slide.focused:nth-child(n) {
+        transform: rotateY(var(--angle)) translateZ(700px);
+    }
+
+    .nav-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+
+    .nav-btn.prev {
+        left: 15px;
+    }
+
+    .nav-btn.next {
+        right: 15px;
+    }
+}
