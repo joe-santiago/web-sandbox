@@ -25,20 +25,20 @@ export default function Ring({ activeId, hoveredId, onSelect, onHover }) {
           <Card
             key={item.id}
             
-            // Pass all data props
+            // WE CHANGE THIS: Pass the calculated layout as "gridPosition"
+            gridPosition={[Math.sin(angle) * radius, 0, Math.cos(angle) * radius]}
+            gridRotation={[0, angle, 0]}
+            
+            // Pass the rest of the data
             front={item.front}
             back={item.back}
-            link={item.link} 
-            
-            position={[Math.sin(angle) * radius, 0, Math.cos(angle) * radius]}
-            rotation={[0, angle, 0]} 
+            link={item.link}
             
             active={activeId === item.id}
             hovered={hoveredId === item.id}
             onPointerOver={() => onHover(item.id)}
             onPointerOut={() => onHover(null)}
-            // Select the card if it isn't already active
-            onClick={() => activeId === item.id ? null : onSelect(item.id)}
+            onClick={() => onSelect(activeId === item.id ? null : item.id)}
           />
         )
       })}
