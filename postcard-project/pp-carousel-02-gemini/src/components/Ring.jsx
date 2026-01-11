@@ -1,58 +1,44 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useScroll } from '@react-three/drei'
-import { easing } from 'maath'
-import Card from './Card'
+import * as THREE from 'three'
 import { data } from '../data'
+import Card from './Card'
 
-export default function Ring({ onHover, onSelect, activeId, hoveredId }) {
-  const ref = useRef()
+export default function Ring({ activeId, hoveredId, onSelect, onHover }) {
+  const group = useRef()
   const scroll = useScroll()
 
-  // --- NEW: DYNAMIC LAYOUT CALCULATION ---
-  const numItems = data.length
-  // 1. Calculate required circumference (roughly 1.6 units per card)
-  // 2. Derive radius: r = C / 2PI
-  // 3. Ensure a minimum radius of 3 so small lists don't look cramped
-  const radius = Math.max(3, (numItems * 1.6) / (2 * Math.PI))
-  
-  // Adjust camera distance: If the ring grows, move camera back
-  const cameraDist = 14 + (radius - 3) // Start at 14, add depth as radius grows
-
   useFrame((state, delta) => {
-    ref.current.rotation.y = -scroll.offset * (Math.PI * 2)
-
-    easing.damp3(
-      state.camera.position,
-      [
-        -state.pointer.x * 2,
-        state.pointer.y * 2,
-        cameraDist // <--- Updated to be dynamic
-      ], 
-      0.3, 
-      delta
-    )
+    const rotationOffset = scroll.offset * (Math.PI * 2)
+    group.current.rotation.y = rotationOffset
   })
 
-  return (
-    <group ref={ref}>
-      {data.map((item, index) => {
-        const angle = (index / numItems) * Math.PI * 2
-        const x = Math.sin(angle) * radius
-        const z = Math.cos(angle) * radius
+  const radius = 2.8 
+  const count = data.length
 
+  return (
+    <group ref={group} rotation={[-0.2, 0, 0]}>
+      {data.map((item, index) => {
+        const angle = (index / count) * Math.PI * 2
         return (
           <Card
             key={item.id}
-            url={item.front}
+            
+            // Pass all data props
+            front={item.front}
             back={item.back}
-            position={[x, 0, z]}
-            rotation={[0, angle, 0]}
+            link={item.link} 
+            
+            position={[Math.sin(angle) * radius, 0, Math.cos(angle) * radius]}
+            rotation={[0, angle, 0]} 
+            
             active={activeId === item.id}
             hovered={hoveredId === item.id}
-            onPointerOver={() => onHover && onHover(item.id)}
-            onPointerOut={() => onHover && onHover(null)}
-            onClick={() => onSelect && onSelect(item.id)}
+            onPointerOver={() => onHover(item.id)}
+            onPointerOut={() => onHover(null)}
+            // Select the card if it isn't already active
+            onClick={() => activeId === item.id ? null : onSelect(item.id)}
           />
         )
       })}

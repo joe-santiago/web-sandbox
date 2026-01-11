@@ -1,43 +1,46 @@
 import { useState } from 'react'
-import { Canvas } from '@react-three/fiber'
+import { Canvas, useFrame } from '@react-three/fiber' // <--- Added useFrame
 import { ScrollControls } from '@react-three/drei'
+import * as THREE from 'three' // <--- Added THREE for math
 import Ring from './components/Ring'
-// We will wire up ActiveCard in the next step, for now let's get the Ring working
-// import ActiveCard from './components/ActiveCard' 
+
+// This component handles the subtle camera tilt
+function Rig() {
+  useFrame((state, delta) => {
+    // Read mouse position (x and y are between -1 and 1)
+    // Lerp (Linear Interpolation) smooths the movement
+    state.camera.position.x = THREE.MathUtils.lerp(state.camera.position.x, (state.mouse.x * 2), 0.05)
+    state.camera.position.y = THREE.MathUtils.lerp(state.camera.position.y, (state.mouse.y * 1), 0.05)
+    
+    // Always look at the center of the scene
+    state.camera.lookAt(0, 0, 0)
+  })
+  return null
+}
 
 export default function App() {
   const [activeId, setActiveId] = useState(null)
   const [hoveredId, setHoveredId] = useState(null)
 
   return (
-    <>
-      <Canvas camera={{ position: [0, 0, 0], fov: 35 }}>
-        {/* 1. Background Color */}
-        <color attach="background" args={['#101010']} />
-        
-        {/* 2. Lighting (Essential for 3D) */}
-        <ambientLight intensity={0.5} />
-        <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1} />
-        <pointLight position={[-10, -10, -10]} intensity={0.5} />
+    <Canvas camera={{ position: [0, 0, 12], fov: 35 }}>
+      {/* 1. Bright Background to match reference */}
+      <color attach="background" args={['#f0f0f0']} />
+      
+      <ambientLight intensity={0.8} />
+      <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1} />
+      
+      {/* 2. Add the Rig here to control the camera */}
+      <Rig />
 
-        {/* 3. Controls & Scene */}
-        {/* 'pages' determines how long the scroll is. 4 pages = long scroll area */}
-        <ScrollControls pages={4} damping={0.2}>
-          <Ring 
-            activeId={activeId}
-            hoveredId={hoveredId}
-            onSelect={setActiveId}
-            onHover={setHoveredId}
-          />
-        </ScrollControls>
-      </Canvas>
-
-      {/* 4. Overlay UI (We will implement ActiveCard here later) */}
-      {activeId && (
-         <div style={{ position: 'absolute', top: 20, left: 20, color: 'white', zIndex: 10 }}>
-            Active ID: {activeId} <button onClick={() => setActiveId(null)}>Close</button>
-         </div>
-      )}
-    </>
+      <ScrollControls pages={4} damping={0.2}>
+        <Ring 
+          activeId={activeId}
+          hoveredId={hoveredId}
+          onSelect={setActiveId}
+          onHover={setHoveredId}
+        /> 
+      </ScrollControls>
+    </Canvas>
   )
 }

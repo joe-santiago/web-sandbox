@@ -1,35 +1,51 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Image } from '@react-three/drei'
-import { easing } from 'maath'
 import * as THREE from 'three'
 
-export default function Card({ url, back, active, hovered, ...props }) {
+export default function Card({ front, back, link, active, hovered, ...props }) {
   const ref = useRef()
-
+  
   useFrame((state, delta) => {
-    // Smoothly animate scale: 1.1 when hovered, 1.0 when not
-    const targetScale = hovered ? 1.1 : 1
-    easing.damp3(ref.current.scale, [targetScale, targetScale, 1], 0.1, delta)
+    // Scale: Big if active, Medium if hovered
+    const targetScale = active ? 1.7 : hovered ? 1.15 : 1
+    ref.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, 1), delta * 10)
+    
+    // Position: Move to center (z=2) if active
+    const targetPos = active ? new THREE.Vector3(0, 0, 2) : new THREE.Vector3(0, 0, 0)
+    ref.current.position.lerp(targetPos, delta * 10)
   })
 
+  // Handle click: If active, open the link. If not, the parent (Ring) handles selection.
+  const handleClick = (e) => {
+    if (active && link) {
+      window.open(link, '_blank') // Opens your mediabyjoe url in a new tab
+      e.stopPropagation() // Prevents the click from passing through
+    } else {
+      props.onClick(e)
+    }
+  }
+
   return (
-    <group ref={ref} {...props}>
-      {/* Front Image */}
-      {/* Note: side={THREE.BackSide} was requested. 
-          If images appear invisible, switch to THREE.FrontSide or remove the side prop. */}
-      <Image 
-        url={url} 
-        side={THREE.BackSide} 
+    <group {...props} ref={ref} onClick={handleClick}>
+      {/* FRONT IMAGE */}
+      <Image
+        url={front} // <--- Fixing the crash: Using 'front' prop
+        transparent
+        side={THREE.DoubleSide}
+        radius={0.075}
+        scale={[1.618, 2.5]} 
+        position={[0, 0, 0.01]}
       />
 
-      {/* Back Image (The Sandwich) */}
+      {/* BACK IMAGE */}
       <Image
-        url={back}
-        side={THREE.BackSide}
-        // Offset Z slightly to prevent Z-fighting (glitching) between the two planes
+        url={back} // <--- Fixing the crash: Using 'back' prop
+        transparent
+        side={THREE.DoubleSide}
+        radius={0.075}
+        scale={[1.618, 2.5]}
         position={[0, 0, -0.01]}
-        // Rotate 180 deg on Y to face the opposite direction
         rotation={[0, Math.PI, 0]}
       />
     </group>
