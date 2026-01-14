@@ -4,26 +4,26 @@ const cardIds = [
   3009, 3010, 3011, 3012
 ];
 
-// We define the specific orientation for each ID based on your screenshots
 const orientations = {
-  3001: 'landscape',
-  3002: 'portrait',  // Road/Path
-  3003: 'portrait',  // Green Hills
-  3004: 'landscape',
-  3005: 'landscape',
-  3006: 'landscape',
-  3007: 'landscape',
-  3008: 'portrait',  // Looking up at building
-  3009: 'landscape',
-  3010: 'landscape',
-  3011: 'portrait',  // Sparkler
-  3012: 'landscape'
+  3001: 'landscape', 3002: 'portrait', 3003: 'portrait', 3004: 'landscape',
+  3005: 'landscape', 3006: 'landscape', 3007: 'landscape', 3008: 'portrait',
+  3009: 'landscape', 3010: 'landscape', 3011: 'portrait', 3012: 'landscape'
+};
+
+// Aspect Ratio Logic:
+// Moo Luxe 5x7 cards = 7 / 5 = 1.4 Ratio.
+// We use 1.4 as the standard for this project.
+const ratios = {
+  // If you ever have a non-standard card (like a square), set it here.
+  // Otherwise, we default to 1.4 below.
 };
 
 export const data = cardIds.map((id) => ({
   id: id,
-  // Look up the orientation in our list above
-  orientation: orientations[id], 
+  orientation: orientations[id],
+  
+  // Default to 1.4 (Moo Standard) unless a specific override exists above
+  aspectRatio: ratios[id] || 1.4,
   
   front: `/cards/fronts/${id}.jpg`,
   back: `/cards/backs/${id}.jpg`,
