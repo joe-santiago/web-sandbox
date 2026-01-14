@@ -5,9 +5,10 @@ import * as THREE from 'three'
 
 export default function Card({ front, back, link, active, hovered, gridPosition, gridRotation, orientation, aspectRatio, ...props }) {
   const ref = useRef()
+  const backRef = useRef() // <--- NEW: Reference for the back image
   const [isFlipped, setIsFlipped] = useState(false)
 
-  // 1. GEOMETRY (Ratio 1.4)
+  // 1. GEOMETRY
   const isPortrait = orientation === 'portrait'
   let width, height;
   if (isPortrait) {
@@ -18,13 +19,12 @@ export default function Card({ front, back, link, active, hovered, gridPosition,
       height = 2.5 / aspectRatio;
   }
 
-  // Reset flip state when clicking away
   useEffect(() => {
     if (!active) setIsFlipped(false)
   }, [active])
   
   useFrame((state, delta) => {
-    // --- POSITION & SCALE (Standard Lerping) ---
+    // --- POSITION & SCALE ---
     const homePos = new THREE.Vector3(...gridPosition)
     const targetPos = active ? new THREE.Vector3(0, 0, 2) : homePos
     ref.current.position.lerp(targetPos, delta * 10)
@@ -35,37 +35,44 @@ export default function Card({ front, back, link, active, hovered, gridPosition,
     const currentMultiplier = active ? activeScale : hovered ? hoverScale : baseScale
     ref.current.scale.lerp(new THREE.Vector3(width * currentMultiplier, height * currentMultiplier, 1), delta * 10)
 
-    // --- ROTATION: THE PHYSICAL RULES STATE MACHINE ---
-    
-    // Start with the Ring's rotation (Inactive State)
+    // --- CARD ROTATION (Mesh) ---
     let targetX = gridRotation[0]
     let targetY = gridRotation[1]
     let targetZ = gridRotation[2] 
 
-    // If Active (Featured Center State)
     if (active) {
-      // 1. Reset to upright center position
       targetX = 0
       targetY = 0
       targetZ = 0
-
-      // 2. Apply Flip Logic if Flipped
       if (isFlipped) {
           if (isPortrait) {
-              // RULE B (Portrait): Flip long edge (Y=180) AND rotate 90 clockwise (Z=-90)
               targetY = Math.PI
               targetZ = -Math.PI / 2
           } else {
-              // RULE A (Landscape): Simple book flip (Y=180)
               targetY = Math.PI
           }
       }
     }
 
-    // Apply smooth animation to targets
     ref.current.rotation.x = THREE.MathUtils.lerp(ref.current.rotation.x, targetX, delta * 10)
     ref.current.rotation.y = THREE.MathUtils.lerp(ref.current.rotation.y, targetY, delta * 10)
     ref.current.rotation.z = THREE.MathUtils.lerp(ref.current.rotation.z, targetZ, delta * 10)
+
+    // --- TEXTURE ROTATION (The Dynamic Fix) ---
+    // We animate the texture itself to solve the "Upside Down" issue in the Ring
+    // while keeping the "Correct" orientation in the Feature.
+    
+    if (backRef.current && isPortrait) {
+        // If Active: Use -90 (User confirmed this is correct for Feature)
+        // If Inactive: Use +90 (Flips it 180 degrees to fix the Ring)
+        const targetBackZ = active ? -Math.PI / 2 : Math.PI / 2
+        
+        backRef.current.rotation.z = THREE.MathUtils.lerp(
+            backRef.current.rotation.z, 
+            targetBackZ, 
+            delta * 10
+        )
+    }
   })
 
   return (
@@ -74,7 +81,6 @@ export default function Card({ front, back, link, active, hovered, gridPosition,
       if (active) setIsFlipped(!isFlipped)
       else props.onClick(e)
     }}>
-      {/* FRONT IMAGE */}
       <Image 
         url={front} 
         transparent 
@@ -82,14 +88,13 @@ export default function Card({ front, back, link, active, hovered, gridPosition,
         position={[0, 0, 0.01]}
         scale={[1, 1]} 
       />
-
-      {/* BACK IMAGE */}
       <Image 
+        ref={backRef} // <--- NEW: Attach the ref here
         url={back} 
         transparent 
         side={THREE.DoubleSide}
         position={[0, 0, -0.01]}
-        // FIX ISSUE 1: Permanently rotate back image to face outward so it's not mirrored
+        // We set the initial rotation here, but useFrame takes over immediately
         rotation={[0, Math.PI, 0]} 
         scale={[1, 1]}
       />
