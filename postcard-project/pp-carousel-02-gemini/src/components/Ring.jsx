@@ -1,32 +1,45 @@
 import { useRef } from 'react'
-import { useFrame } from '@react-three/fiber'
 import { useScroll } from '@react-three/drei'
 import * as THREE from 'three'
 import { data } from '../data'
 import Card from './Card'
 
 export default function Ring({ activeId, hoveredId, onSelect, onHover }) {
-  const group = useRef()
   const scroll = useScroll()
+  
+  // THE ODOMETER LOGIC
+  // We use refs to track the loop count and unwrapped rotation
+  // This persists across frames without causing re-renders
+  const rotationRef = useRef(0)
+  const lastOffset = useRef(0)
+  const loopCount = useRef(0)
 
-  useFrame((state, delta) => {
-    // FIX: Removed the "if (!activeId)" check.
-    // The ring now ALWAYS rotates based on scroll, even if a card is locked.
-    const rotationOffset = scroll.offset * (Math.PI * 2)
-    group.current.rotation.y = rotationOffset
-  })
+  // We define a getter to calculate the live rotation frame-by-frame
+  const getRotation = () => {
+    const offset = scroll.offset
+    const delta = offset - lastOffset.current
+    
+    // Detect Wrap (The Odometer Click)
+    // If delta is huge (e.g., -0.9), we wrapped forward -> Add 1 loop
+    // If delta is huge (e.g., +0.9), we wrapped backward -> Subtract 1 loop
+    if (delta < -0.5) loopCount.current += 1
+    if (delta > 0.5) loopCount.current -= 1
+    
+    lastOffset.current = offset
+    
+    // Total Rotation = (Loops + Current Position) * 360 degrees
+    return (loopCount.current + offset) * (Math.PI * 2)
+  }
 
   const radius = 5.0 
   const count = data.length
 
   return (
-    <group ref={group} rotation={[-0.1, 0, 0]}>
+    <group rotation={[-0.1, 0, 0]}>
       {data.map((item, index) => {
-        const angle = (index / count) * Math.PI * 2
+        const startAngle = (index / count) * Math.PI * 2
         const zRotation = item.orientation === 'portrait' ? Math.PI / 2 : 0
-        const yRotation = angle + (Math.PI / 2) - 0.25
 
-        // STATE LOGIC
         const isLocked = activeId === item.id
         const isHovered = hoveredId === item.id
         const isActive = isLocked || isHovered
@@ -34,8 +47,19 @@ export default function Ring({ activeId, hoveredId, onSelect, onHover }) {
         return (
           <Card
             key={item.id}
-            gridPosition={[Math.sin(angle) * radius, 0, Math.cos(angle) * radius]}
-            gridRotation={[0, yRotation, zRotation]}
+            
+            // PROPS UPDATE:
+            // We pass the getRotation function so the card can read the
+            // clean, infinite odometer value every frame.
+            getRotation={getRotation}
+            
+            startAngle={startAngle}
+            radius={radius}
+            // Removed 'scroll' prop (Card doesn't need raw scroll anymore)
+            
+            totalItems={count}
+            zRotation={zRotation}
+            
             front={item.front}
             back={item.back}
             link={item.link}
