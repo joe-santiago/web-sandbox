@@ -6,7 +6,7 @@ import * as THREE from 'three'
 export default function Card({ 
   front, back, link, 
   active, locked, hovered, 
-  startAngle, radius, getRotation, totalItems, zRotation, // CHANGED: getRotation instead of scroll
+  startAngle, radius, getRotation, totalItems, zRotation, 
   orientation, aspectRatio, 
   ...props 
 }) {
@@ -31,9 +31,7 @@ export default function Card({
   
   useFrame((state, delta) => {
     // --- 1. CALCULATE ORBIT POSITION ---
-    // Use the Odometer value. It never resets, so no more 360 spins.
     const ringRotation = getRotation()
-    
     const currentAngle = startAngle + ringRotation
     
     const homeX = Math.sin(currentAngle) * radius
@@ -45,61 +43,49 @@ export default function Card({
     const centerHeight = anchorY + (height / 2)
     
     let targetPos = new THREE.Vector3(homeX, 0, homeZ)
-    let targetRotY = homeRotY
-    let targetRotX = 0
-    let targetRotZ = zRotation
+    
+    // QUATERNION SETUP
+    const targetQ = new THREE.Quaternion()
+    const euler = new THREE.Euler(0, homeRotY, zRotation, 'XYZ')
 
     if (locked) {
       targetPos.set(0, centerHeight, 0)
       
-      targetRotX = 0
-      targetRotY = 0 
-      targetRotZ = 0
+      let targetRotX = 0
+      let targetRotY = 0 
+      let targetRotZ = 0
       
       if (isFlipped) {
           if (isPortrait) {
+              // THE FIX: "The Chirality Flip"
+              // We changed -Math.PI/2 to +Math.PI/2
+              // This rotates the card Clockwise, putting the "Top" where it belongs.
               targetRotY += Math.PI
-              targetRotZ = -Math.PI / 2
+              targetRotZ = Math.PI / 2 
           } else {
               targetRotY += Math.PI
           }
       }
+      
+      euler.set(targetRotX, targetRotY, targetRotZ, 'XYZ')
 
     } else if (hovered) {
       targetPos.set(homeX, 0.5, homeZ)
     }
 
+    targetQ.setFromEuler(euler)
+
     // --- 3. APPLY PHYSICS ---
     ref.current.position.lerp(targetPos, delta * 10)
     
-    ref.current.rotation.x = THREE.MathUtils.lerp(ref.current.rotation.x, targetRotX, delta * 10)
-    
-    // ROTATION Y FIX:
-    // Because homeRotY grows infinitely (e.g., 1000 radians), and our current rotation 
-    // might be small or wrapped, we need to ensure the interpolation is clean.
-    // However, since we are now feeding a continuous stream (no 0-360 jumps), 
-    // simple lerping actually works fine! The target just keeps growing, 
-    // and the current value chases it.
-    ref.current.rotation.y = THREE.MathUtils.lerp(ref.current.rotation.y, targetRotY, delta * 10)
-    
-    ref.current.rotation.z = THREE.MathUtils.lerp(ref.current.rotation.z, targetRotZ, delta * 10)
-
-    // --- SCALE ---
     const activeScale = 1.3 
     const hoverScale = 1.1
     const baseScale = 1
     const currentMultiplier = locked ? activeScale : hovered ? hoverScale : baseScale
     ref.current.scale.lerp(new THREE.Vector3(width * currentMultiplier, height * currentMultiplier, 1), delta * 10)
 
-    // --- TEXTURE ROTATION ---
-    if (backRef.current && isPortrait) {
-        const targetBackZ = locked ? -Math.PI / 2 : Math.PI / 2
-        backRef.current.rotation.z = THREE.MathUtils.lerp(
-            backRef.current.rotation.z, 
-            targetBackZ, 
-            delta * 10
-        )
-    }
+    // Slerp prevents the "Shearing" artifact we fixed in the last step
+    ref.current.quaternion.slerp(targetQ, delta * 10)
   })
 
   return (
