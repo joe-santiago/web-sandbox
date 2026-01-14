@@ -14,9 +14,8 @@ function Rig({ children }) {
     const baseZ = 28
     const targetZ = aspect < 1 ? baseZ / aspect : baseZ
 
-    // 2. MOUSE Y (The "Always Above" Fix)
-    // We Map the range -1..1 (Mouse) to 5..15 (Camera Height)
-    // (state.pointer.y + 1) / 2 converts the mouse range to 0..1
+    // 2. MOUSE Y (Map -1..1 to 5..15)
+    // This ensures the camera is always slightly above the ring
     const minHeight = 5
     const maxHeight = 15
     const targetY = THREE.MathUtils.lerp(minHeight, maxHeight, (state.pointer.y + 1) / 2)
@@ -37,7 +36,11 @@ export default function App() {
   const [hoveredId, setHoveredId] = useState(null)
 
   return (
-    <Canvas camera={{ position: [0, 0, 30], fov: 30 }}>
+    // ON POINTER MISSED: If user clicks background, unlock the card (setActiveId(null))
+    <Canvas 
+      camera={{ position: [0, 0, 30], fov: 30 }}
+      onPointerMissed={() => setActiveId(null)}
+    >
       <color attach="background" args={['#f0f0f0']} />
       <ambientLight intensity={0.8} />
       <directionalLight position={[10, 10, 5]} intensity={1} />

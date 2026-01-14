@@ -10,13 +10,13 @@ export default function Ring({ activeId, hoveredId, onSelect, onHover }) {
   const scroll = useScroll()
 
   useFrame((state, delta) => {
+    // FIX: Removed the "if (!activeId)" check.
+    // The ring now ALWAYS rotates based on scroll, even if a card is locked.
     const rotationOffset = scroll.offset * (Math.PI * 2)
     group.current.rotation.y = rotationOffset
   })
 
-  // GEOMETRY UPDATE: Reverted to tight radius of 5.0
   const radius = 5.0 
-  
   const count = data.length
 
   return (
@@ -25,6 +25,11 @@ export default function Ring({ activeId, hoveredId, onSelect, onHover }) {
         const angle = (index / count) * Math.PI * 2
         const zRotation = item.orientation === 'portrait' ? Math.PI / 2 : 0
         const yRotation = angle + (Math.PI / 2) - 0.25
+
+        // STATE LOGIC
+        const isLocked = activeId === item.id
+        const isHovered = hoveredId === item.id
+        const isActive = isLocked || isHovered
 
         return (
           <Card
@@ -36,11 +41,14 @@ export default function Ring({ activeId, hoveredId, onSelect, onHover }) {
             link={item.link}
             orientation={item.orientation}
             aspectRatio={item.aspectRatio}
-            active={activeId === item.id}
-            hovered={hoveredId === item.id}
+            
+            active={isActive}
+            locked={isLocked}
+            hovered={isHovered}
+            
             onPointerOver={() => onHover(item.id)}
             onPointerOut={() => onHover(null)}
-            onClick={() => activeId === item.id ? onSelect(null) : onSelect(item.id)}
+            onClick={() => onSelect(item.id)}
           />
         )
       })}
