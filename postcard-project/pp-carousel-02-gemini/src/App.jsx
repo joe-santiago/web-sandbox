@@ -1,17 +1,33 @@
-import { useState } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
+import { Canvas, useFrame } from '@react-three/fiber' // Added useFrame
 import { ScrollControls } from '@react-three/drei'
-import * as THREE from 'three'
+import * as THREE from 'three' // Added THREE for math
 import Ring from './components/Ring'
+import './App.css'
+import { useState } from 'react'
 
-function Rig() {
+// THE RIG COMPONENT
+// This acts as the "Cameraman"
+function Rig({ children }) {
   useFrame((state, delta) => {
-    // Read mouse position (x and y are between -1 and 1)
-    state.camera.position.x = THREE.MathUtils.lerp(state.camera.position.x, (state.mouse.x * 2), 0.05)
-    state.camera.position.y = THREE.MathUtils.lerp(state.camera.position.y, (state.mouse.y * 1), 0.05)
+    // 1. READ MOUSE Y (-1 is bottom, +1 is top)
+    // We map -1..1 to a Camera Y position of 0..12
+    // If mouse is low, Y=0 (Eye level)
+    // If mouse is high, Y=12 (Aerial view)
+    const targetY = Math.max(0, state.pointer.y * 12)
+    
+    // 2. SMOOTH MOVE (Lerp)
+    // We gently drift the camera to the new height
+    state.camera.position.y = THREE.MathUtils.lerp(
+      state.camera.position.y, 
+      targetY, 
+      0.05 // 5% movement per frame (Smooth)
+    )
+    
+    // 3. ALWAYS LOOK AT CENTER
     state.camera.lookAt(0, 0, 0)
   })
-  return null
+  
+  return <group>{children}</group>
 }
 
 export default function App() {
@@ -19,26 +35,23 @@ export default function App() {
   const [hoveredId, setHoveredId] = useState(null)
 
   return (
-    <Canvas camera={{ position: [0, 0, 12], fov: 35 }}>
-      {/* 1. Bright Background */}
+    // Base Camera: Z=22 (slightly closer than 25 so it's not too small)
+    <Canvas camera={{ position: [0, 0, 22], fov: 30 }}>
       <color attach="background" args={['#f0f0f0']} />
-      
       <ambientLight intensity={0.8} />
-      <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1} />
+      <directionalLight position={[10, 10, 5]} intensity={1} />
       
-      {/* 2. Camera Rig */}
-      <Rig />
-
-      {/* 3. Controls & Scene */}
-      {/* We added the 'infinite' prop here */}
-      <ScrollControls pages={4} damping={0.2} infinite>
-        <Ring 
-          activeId={activeId}
-          hoveredId={hoveredId}
-          onSelect={setActiveId}
-          onHover={setHoveredId}
-        /> 
-      </ScrollControls>
+      {/* We wrap everything in the Rig so the camera reacts to the mouse */}
+      <Rig>
+        <ScrollControls pages={4} infinite>
+          <Ring 
+            activeId={activeId} 
+            hoveredId={hoveredId}
+            onSelect={setActiveId}
+            onHover={setHoveredId}
+          />
+        </ScrollControls>
+      </Rig>
     </Canvas>
   )
 }

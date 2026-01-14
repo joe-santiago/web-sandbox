@@ -24,15 +24,15 @@ export default function Card({ front, back, link, active, hovered, gridPosition,
   }, [active])
   
   useFrame((state, delta) => {
-   // --- POSITION ---
-   const homePos = new THREE.Vector3(...gridPosition)
+    // --- POSITION ---
+    const homePos = new THREE.Vector3(...gridPosition)
     
-   // DRAMATIC LIFT:
-   // Y = 1.5 (Much higher up)
-   // Z = 3.8 (Much closer to camera, creating separation from the background ring)
-   const targetPos = active ? new THREE.Vector3(0, 1.5, 3.8) : homePos
-   
-   ref.current.position.lerp(targetPos, delta * 10)
+    // REFOCUS: SINGLE GOAL -> CENTER THE CARD
+    // X=0, Z=0 puts it exactly in the middle of the ring.
+    // Y=0.25 gives it a tiny lift so it doesn't look like it's sinking.
+    const targetPos = active ? new THREE.Vector3(0, 0.25, 0) : homePos
+    
+    ref.current.position.lerp(targetPos, delta * 10)
 
     // --- SCALE ---
     const activeScale = 1.3 

@@ -14,36 +14,28 @@ export default function Ring({ activeId, hoveredId, onSelect, onHover }) {
     group.current.rotation.y = rotationOffset
   })
 
-  // Radius 5 for the open/louvered look
-  const radius = 5 
+  // GEOMETRY UPDATE: Reverted to tight radius of 5.0
+  const radius = 5.0 
+  
   const count = data.length
 
   return (
     <group ref={group} rotation={[-0.1, 0, 0]}>
       {data.map((item, index) => {
         const angle = (index / count) * Math.PI * 2
-        
-        // 1. Z-Rotation (Rolodex Logic)
         const zRotation = item.orientation === 'portrait' ? Math.PI / 2 : 0
-
-        // 2. Y-Rotation (Louver Logic)
         const yRotation = angle + (Math.PI / 2) - 0.25
 
         return (
           <Card
             key={item.id}
-            
             gridPosition={[Math.sin(angle) * radius, 0, Math.cos(angle) * radius]}
             gridRotation={[0, yRotation, zRotation]}
-            
             front={item.front}
             back={item.back}
             link={item.link}
             orientation={item.orientation}
-            
-            // --- THE FIX: Pass the new Aspect Ratio Prop ---
             aspectRatio={item.aspectRatio}
-            
             active={activeId === item.id}
             hovered={hoveredId === item.id}
             onPointerOver={() => onHover(item.id)}
