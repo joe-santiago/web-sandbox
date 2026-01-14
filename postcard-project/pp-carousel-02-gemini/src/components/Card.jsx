@@ -27,10 +27,17 @@ export default function Card({ front, back, link, active, hovered, gridPosition,
     // --- POSITION ---
     const homePos = new THREE.Vector3(...gridPosition)
     
-    // REFOCUS: SINGLE GOAL -> CENTER THE CARD
-    // X=0, Z=0 puts it exactly in the middle of the ring.
-    // Y=0.25 gives it a tiny lift so it doesn't look like it's sinking.
-    const targetPos = active ? new THREE.Vector3(0, 0.25, 0) : homePos
+    // THE ANCHOR FIX:
+    // We raise the anchor from -0.75 to 0.
+    // This forces the BOTTOM EDGE of the card to sit at Y=0.
+    const anchorY = 0 
+    
+    // The Formula: Center = Bottom + (Height / 2)
+    const activeCenterY = anchorY + (height / 2)
+
+    const targetPos = active 
+      ? new THREE.Vector3(0, activeCenterY, 0) 
+      : homePos
     
     ref.current.position.lerp(targetPos, delta * 10)
 
