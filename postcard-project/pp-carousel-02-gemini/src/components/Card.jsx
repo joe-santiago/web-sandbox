@@ -7,9 +7,8 @@ export default function Card({ front, back, link, active, hovered, gridPosition,
   const ref = useRef()
   const [isFlipped, setIsFlipped] = useState(false)
 
-  // 1. DYNAMIC MOO GEOMETRY
+  // 1. GEOMETRY (Ratio 1.4)
   const isPortrait = orientation === 'portrait'
-  
   let width, height;
   if (isPortrait) {
       height = 2.5;
@@ -19,53 +18,55 @@ export default function Card({ front, back, link, active, hovered, gridPosition,
       height = 2.5 / aspectRatio;
   }
 
+  // Reset flip state when clicking away
   useEffect(() => {
     if (!active) setIsFlipped(false)
   }, [active])
   
   useFrame((state, delta) => {
-    // --- POSITION ---
+    // --- POSITION & SCALE (Standard Lerping) ---
     const homePos = new THREE.Vector3(...gridPosition)
     const targetPos = active ? new THREE.Vector3(0, 0, 2) : homePos
     ref.current.position.lerp(targetPos, delta * 10)
 
-    // --- SCALE ---
     const activeScale = 1.3 
     const hoverScale = 1.1
     const baseScale = 1
     const currentMultiplier = active ? activeScale : hovered ? hoverScale : baseScale
-    
     ref.current.scale.lerp(new THREE.Vector3(width * currentMultiplier, height * currentMultiplier, 1), delta * 10)
 
-    // --- ROTATION ---
+    // --- ROTATION: THE PHYSICAL RULES STATE MACHINE ---
+    
+    // Start with the Ring's rotation (Inactive State)
     let targetX = gridRotation[0]
     let targetY = gridRotation[1]
     let targetZ = gridRotation[2] 
 
+    // If Active (Featured Center State)
     if (active) {
-      targetZ = 0 
-      targetY = 0 
-      targetX = isFlipped ? Math.PI : 0
+      // 1. Reset to upright center position
+      targetX = 0
+      targetY = 0
+      targetZ = 0
+
+      // 2. Apply Flip Logic if Flipped
+      if (isFlipped) {
+          if (isPortrait) {
+              // RULE B (Portrait): Flip long edge (Y=180) AND rotate 90 clockwise (Z=-90)
+              targetY = Math.PI
+              targetZ = -Math.PI / 2
+          } else {
+              // RULE A (Landscape): Simple book flip (Y=180)
+              targetY = Math.PI
+          }
+      }
     }
 
+    // Apply smooth animation to targets
     ref.current.rotation.x = THREE.MathUtils.lerp(ref.current.rotation.x, targetX, delta * 10)
     ref.current.rotation.y = THREE.MathUtils.lerp(ref.current.rotation.y, targetY, delta * 10)
     ref.current.rotation.z = THREE.MathUtils.lerp(ref.current.rotation.z, targetZ, delta * 10)
   })
-
-  // 2. DYNAMIC BACK ROTATION (The Fix)
-  // We cannot hardcode this. It depends on state.
-  
-  // Rule A: If Active (Flipped on X), we rotate 180 on Z to be upright.
-  // Rule B: If Inactive (In Ring) AND Portrait, we rotate -90 on Z to be horizontal.
-  // Rule C: Otherwise (Landscape in Ring), no rotation needed.
-  
-  let backRotateZ = 0;
-  if (active) {
-      backRotateZ = Math.PI; // 180 degrees
-  } else if (isPortrait) {
-      backRotateZ = -Math.PI / 2; // -90 degrees
-  }
 
   return (
     <group {...props} ref={ref} onClick={(e) => {
@@ -88,8 +89,8 @@ export default function Card({ front, back, link, active, hovered, gridPosition,
         transparent 
         side={THREE.DoubleSide}
         position={[0, 0, -0.01]}
-        // Apply our Dynamic Rotation
-        rotation={[0, 0, backRotateZ]} 
+        // FIX ISSUE 1: Permanently rotate back image to face outward so it's not mirrored
+        rotation={[0, Math.PI, 0]} 
         scale={[1, 1]}
       />
     </group>
