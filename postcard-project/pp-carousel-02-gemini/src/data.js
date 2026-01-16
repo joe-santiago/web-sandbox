@@ -6,7 +6,7 @@ const cardIds = [
 
 const orientations = {
   3001: 'landscape', 3002: 'portrait', 3003: 'portrait', 3004: 'landscape',
-  3005: 'landscape', 3006: 'landscape', 3007: 'landscape', 3008: 'portrait',
+  3005: 'landscape', 3006: 'landscape', 3007: 'landscape', 3008: 'landscape',
   3009: 'landscape', 3010: 'landscape', 3011: 'portrait', 3012: 'landscape'
 };
 
