@@ -43,8 +43,6 @@ export default function Card({
     const centerHeight = anchorY + (height / 2)
     
     let targetPos = new THREE.Vector3(homeX, 0, homeZ)
-    
-    // QUATERNION SETUP
     const targetQ = new THREE.Quaternion()
     const euler = new THREE.Euler(0, homeRotY, zRotation, 'XYZ')
 
@@ -57,11 +55,11 @@ export default function Card({
       
       if (isFlipped) {
           if (isPortrait) {
-              // THE FIX: "The Chirality Flip"
-              // We changed -Math.PI/2 to +Math.PI/2
-              // This rotates the card Clockwise, putting the "Top" where it belongs.
+              // FLIP LOGIC:
+              // Rotate 180 (PI) to show back.
+              // Rotate 90 (PI/2) to turn the card Landscape.
               targetRotY += Math.PI
-              targetRotZ = Math.PI / 2 
+              targetRotZ = Math.PI / 2
           } else {
               targetRotY += Math.PI
           }
@@ -77,15 +75,14 @@ export default function Card({
 
     // --- 3. APPLY PHYSICS ---
     ref.current.position.lerp(targetPos, delta * 10)
+    ref.current.quaternion.slerp(targetQ, delta * 10)
     
+    // Scale
     const activeScale = 1.3 
     const hoverScale = 1.1
     const baseScale = 1
     const currentMultiplier = locked ? activeScale : hovered ? hoverScale : baseScale
     ref.current.scale.lerp(new THREE.Vector3(width * currentMultiplier, height * currentMultiplier, 1), delta * 10)
-
-    // Slerp prevents the "Shearing" artifact we fixed in the last step
-    ref.current.quaternion.slerp(targetQ, delta * 10)
   })
 
   return (
@@ -101,7 +98,7 @@ export default function Card({
         url={front} 
         transparent 
         side={THREE.DoubleSide}
-        position={[0, 0, 0.01]}
+        position={[0, 0, 0.01]} 
         scale={[1, 1]} 
       />
       <Image 
@@ -110,7 +107,11 @@ export default function Card({
         transparent 
         side={THREE.DoubleSide}
         position={[0, 0, -0.01]}
-        rotation={[0, Math.PI, 0]} 
+        
+        // THE FIX: Changed from -Math.PI/2 to +Math.PI/2
+        // This rotates the image 90 degrees Clockwise instead of Counter-Clockwise.
+        rotation={[0, Math.PI, isPortrait ? Math.PI / 2 : 0]} 
+        
         scale={[1, 1]}
       />
     </group>
