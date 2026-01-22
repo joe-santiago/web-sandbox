@@ -17,6 +17,9 @@ npm run dev      # Start development server with HMR
 npm run build    # Production build
 npm run lint     # Run ESLint
 npm run preview  # Preview production build
+npm run optimize # Auto-resize/compress images in /public/cards/
+npm run validate # Check image sizes without modifying
+npm run add-card # Add new card: npm run add-card -- 3013 portrait
 ```
 
 ## 3. Architecture
@@ -81,7 +84,7 @@ Before declaring a task complete:
 
 ## 7. Roadmap & Limitations
 
-**🚧 Current Focus:** Visual polish (seam thickness, paper texture).
+**🚧 Current Focus:** Bug fixes and stability. Image pipeline complete.
 
 **📦 Out of Scope (Icebox):** Lazy loading, continuous raycasting, mobile swipe gestures, metadata sorting/filtering (season, year tags - revisit at 50+ cards).
 
@@ -165,4 +168,16 @@ This informs every architectural decision: we optimize for a low-frequency, high
    git add . && git commit -m "Add card {id}" && git push
    ```
 
-**Future improvement:** `npm run add-card -- {id} {orientation}` will automate steps 3-4.
+**Automated alternative:** `npm run add-card -- {id} {orientation}` handles steps 2-4 automatically.
+
+## 12. Story Link Feature
+
+Each card back includes a "Read the Story →" link that opens the card's story page.
+
+**Implementation (Card.jsx):**
+- Uses Drei's `Html` component for DOM overlay
+- Appears only when card is locked AND flipped (showing back)
+- Position adjusts for portrait vs landscape orientation
+- Custom font: `Myfont` (loaded from `/public/fonts/`)
+
+**URL Pattern:** `http://mediabyjoe.com/postcard-{id}`
