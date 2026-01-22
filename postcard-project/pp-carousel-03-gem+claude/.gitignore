@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Artwork - existing cards (3001-3012) are tracked as examples
+# New cards will stay local (not pushed to GitHub)
+public/cards/fronts/
+public/cards/backs/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
