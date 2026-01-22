@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useEffect } from 'react'
 import { useScroll } from '@react-three/drei'
 import * as THREE from 'three'
 import { data } from '../data'
@@ -6,7 +6,20 @@ import Card from './Card'
 
 export default function Ring({ activeId, hoveredId, onSelect, onHover }) {
   const scroll = useScroll()
-  
+
+  // FIX: Nudge scroll position on mount to enable bidirectional scrolling
+  // Without this, ScrollControls won't register down-scroll when starting at offset=0
+  // We use a delay to ensure ScrollControls is fully initialized
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (scroll.el) {
+        // Tiny nudge down, then back - this "wakes up" the scroll system
+        scroll.el.scrollTop = 1
+      }
+    }, 100)
+    return () => clearTimeout(timer)
+  }, [scroll.el])
+
   // THE ODOMETER LOGIC
   // We use refs to track the loop count and unwrapped rotation
   // This persists across frames without causing re-renders

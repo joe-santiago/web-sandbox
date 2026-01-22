@@ -86,6 +86,7 @@ Before declaring a task complete:
 **📦 Out of Scope (Icebox):** Lazy loading, continuous raycasting, mobile swipe gestures.
 
 **Known Limitations (Deferred):**
+- **Initial Scroll Direction:** On fresh page load, must scroll "up" (counter-clockwise) before "down" (clockwise) works. Root cause: Drei ScrollControls initialization at offset=0. Workaround: scroll up once to unlock both directions.
 - **Mobile:** ScrollControls uses page scroll. Horizontal swipe = future phase.
 - **Scale:** Manual data.js works to ~20 cards. Beyond that needs loader/CMS.
 
