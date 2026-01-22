@@ -99,3 +99,69 @@ When addressing multiple issues, prioritize in this order:
 4. **Features (New Capability):** New interactions or UI elements.
 
 **Rule: Never break Level 1 to achieve Level 4.**
+
+## 9. Performance Constraints
+
+| Metric | Target | Rationale |
+|--------|--------|-----------|
+| Image file size | <200KB each | Keeps page weight manageable |
+| Max resolution | 1400×1000 px | Sufficient for retina without bloat |
+| Initial load | <3 seconds | Standard UX threshold |
+
+**Optimization Commands:**
+```bash
+npm run optimize   # Auto-resize/compress images in /public/cards/
+npm run validate   # Check image sizes without modifying
+```
+
+## 10. User Profile Context
+
+- **Operator:** Solo artist, single trusted uploader
+- **Cadence:** ~1 card/month (12 cards/year)
+- **Scale Target:** ~240 cards over a 20-year career
+- **Philosophy:** Simplicity over features. No admin UI, no CMS, no database.
+
+This informs every architectural decision: we optimize for a low-frequency, high-trust workflow rather than multi-user collaboration or real-time updates.
+
+## 11. Upload Workflow (Current)
+
+**To add a new card today:**
+
+1. **Prepare images:**
+   - Front image: any resolution (will be optimized)
+   - Back image: same card, back side
+
+2. **Optimize images:**
+   ```bash
+   # Drop images anywhere, then run:
+   npm run optimize
+   ```
+
+3. **Copy to project:**
+   - Front → `/public/cards/fronts/{id}.jpg`
+   - Back → `/public/cards/backs/{id}.jpg`
+
+4. **Update data.js:**
+   ```javascript
+   // Add ID to cardIds array
+   const cardIds = [3001, 3002, ..., NEW_ID];
+
+   // Add orientation to orientations object
+   const orientations = {
+     ...
+     NEW_ID: 'portrait' | 'landscape',
+   };
+   ```
+
+5. **Verify locally:**
+   ```bash
+   npm run dev
+   # Check: text upright on back, no jitter, responsive zoom
+   ```
+
+6. **Deploy:**
+   ```bash
+   git add . && git commit -m "Add card {id}" && git push
+   ```
+
+**Future improvement:** `npm run add-card -- {id} {orientation}` will automate steps 3-4.
