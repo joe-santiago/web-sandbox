@@ -1,3 +1,12 @@
+/* Custom font for story links */
+@font-face {
+  font-family: 'Myfont';
+  src: url('/fonts/MyfontThinVariantCompressed-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;

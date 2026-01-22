@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { Image } from '@react-three/drei'
+import { Image, Html } from '@react-three/drei'
 import * as THREE from 'three'
 
 export default function Card({ 
@@ -101,19 +101,53 @@ export default function Card({
         position={[0, 0, 0.01]} 
         scale={[1, 1]} 
       />
-      <Image 
-        ref={backRef} 
-        url={back} 
-        transparent 
+      <Image
+        ref={backRef}
+        url={back}
+        transparent
         side={THREE.DoubleSide}
         position={[0, 0, -0.01]}
-        
+
         // THE FIX: Changed from -Math.PI/2 to +Math.PI/2
         // This rotates the image 90 degrees Clockwise instead of Counter-Clockwise.
-        rotation={[0, Math.PI, isPortrait ? Math.PI / 2 : 0]} 
-        
+        rotation={[0, Math.PI, isPortrait ? Math.PI / 2 : 0]}
+
         scale={[1, 1]}
       />
+
+      {/* STORY LINK: Appears above card when flipped to back */}
+      {/* Position adjusts for orientation - portrait backs rotate 90° */}
+      {locked && isFlipped && (
+        <Html
+          position={isPortrait ? [0.6, 0, 0] : [0, 0.6, 0]}
+          center
+          style={{
+            opacity: isFlipped ? 1 : 0,
+            transition: 'opacity 0.3s ease',
+            pointerEvents: isFlipped ? 'auto' : 'none',
+          }}
+        >
+          <a
+            href={link}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              color: '#333',
+              fontSize: '16px',
+              fontFamily: "'Myfont', Georgia, serif",
+              textDecoration: 'none',
+              padding: '8px 16px',
+              backgroundColor: 'rgba(255, 255, 255, 0.9)',
+              borderRadius: '4px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            Read the Story →
+          </a>
+        </Html>
+      )}
     </group>
   )
 }
