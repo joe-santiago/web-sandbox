@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Playwright test screenshots
+.playwright-mcp/
+
 # Artwork - existing cards (3001-3012) are tracked as examples
 # New cards will stay local (not pushed to GitHub)
 public/cards/fronts/
