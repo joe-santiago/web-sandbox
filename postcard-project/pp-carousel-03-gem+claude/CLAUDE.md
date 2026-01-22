@@ -83,7 +83,7 @@ Before declaring a task complete:
 
 **🚧 Current Focus:** Visual polish (seam thickness, paper texture).
 
-**📦 Out of Scope (Icebox):** Lazy loading, continuous raycasting, mobile swipe gestures.
+**📦 Out of Scope (Icebox):** Lazy loading, continuous raycasting, mobile swipe gestures, metadata sorting/filtering (season, year tags - revisit at 50+ cards).
 
 **Known Limitations (Deferred):**
 - **Initial Scroll Direction:** On fresh page load, must scroll "up" (counter-clockwise) before "down" (clockwise) works. Root cause: Drei ScrollControls initialization at offset=0. Workaround: scroll up once to unlock both directions.
