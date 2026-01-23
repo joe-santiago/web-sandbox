@@ -15,6 +15,9 @@ dist-ssr
 # Playwright test screenshots
 .playwright-mcp/
 
+# Testing screenshots (mobile testing, debugging)
+screenshots/
+
 # Artwork - existing cards (3001-3012) are tracked as examples
 # New cards will stay local (not pushed to GitHub)
 public/cards/fronts/

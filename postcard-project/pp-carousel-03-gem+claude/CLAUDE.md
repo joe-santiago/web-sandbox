@@ -84,6 +84,13 @@ Before declaring a task complete:
 
 ## 7. Roadmap & Limitations
 
+**🎯 MVP Definition (v1.0):**
+1. Carousel loads with all current cards
+2. Cards flip correctly (portrait + landscape verified)
+3. Story links open in new tab to main site
+4. Deployed to `postcards.mediabyjoe.com`
+5. Linked from main Squarespace site
+
 **🚧 Current Focus:** Bug fixes and stability. Image pipeline complete.
 
 **📦 Out of Scope (Icebox):** Lazy loading, continuous raycasting, mobile swipe gestures, metadata sorting/filtering (season, year tags - revisit at 50+ cards).
@@ -92,6 +99,8 @@ Before declaring a task complete:
 - **Initial Scroll Direction:** On fresh page load, must scroll "up" (counter-clockwise) before "down" (clockwise) works. Root cause: Drei ScrollControls initialization at offset=0. Workaround: scroll up once to unlock both directions.
 - **Mobile:** ScrollControls uses page scroll. Horizontal swipe = future phase.
 - **Scale:** Manual data.js works to ~20 cards. Beyond that needs loader/CMS.
+
+**🔮 Future Scaling:** See Section 15 for iframe embed and Squarespace replacement options.
 
 ## 8. Hierarchy of Resolution
 
@@ -181,3 +190,150 @@ Each card back includes a "Read the Story →" link that opens the card's story 
 - Custom font: `Myfont` (loaded from `/public/fonts/`)
 
 **URL Pattern:** `http://mediabyjoe.com/postcard-{id}`
+
+## 13. Deployment
+
+**Architecture:** Subdomain on external host, linked from main Squarespace site.
+
+```
+mediabyjoe.com              → Squarespace (main site, content)
+postcards.mediabyjoe.com    → Vercel (this carousel app)
+```
+
+### Why This Setup
+- Squarespace cannot run React apps—it only serves static content
+- Vercel auto-builds from GitHub on every push (zero manual deployment)
+- Subdomain avoids iframe scroll/performance issues
+- Free tier is sufficient for this use case
+
+### Initial Setup (One-Time)
+
+**1. Connect GitHub to Vercel:**
+- Go to [vercel.com](https://vercel.com) → Sign up with GitHub
+- Import this repository
+- Vercel auto-detects Vite and configures build settings
+- Note the deployed URL (e.g., `pp-carousel-03.vercel.app`)
+
+**2. Configure Custom Subdomain:**
+- In Vercel project settings → Domains → Add `postcards.mediabyjoe.com`
+- Vercel provides DNS records to add
+
+**3. Add DNS Record in Squarespace:**
+- Squarespace Domains → mediabyjoe.com → DNS Settings
+- Add CNAME record:
+  - Host: `postcards`
+  - Value: `cname.vercel-dns.com`
+- Wait for propagation (usually <1 hour)
+
+**4. Link from Main Site:**
+- Add navigation link or button on Squarespace pointing to `https://postcards.mediabyjoe.com`
+- Consider: "View Postcard Collection →"
+
+### Ongoing Deployment
+```bash
+git add . && git commit -m "Add card {id}" && git push
+# Vercel auto-deploys in ~60 seconds
+```
+
+### Rollback
+Vercel keeps deployment history. If a push breaks something:
+- Vercel Dashboard → Deployments → Click previous deployment → "Promote to Production"
+
+## 14. External Accounts & Credentials
+
+**Purpose:** Document account info so future sessions don't need to re-ask. Never commit secrets—only identifiers.
+
+| Service | Purpose | Identifier |
+|---------|---------|------------|
+| GitHub | Source code hosting | `___YOUR_GITHUB_USERNAME___` |
+| Vercel | Deployment/hosting | (uses GitHub SSO) |
+| Squarespace | Main site + DNS | mediabyjoe.com |
+
+**To update:** Replace placeholders above with your actual usernames. Do NOT add passwords, tokens, or API keys.
+
+**Getting your GitHub username:**
+1. Go to [github.com](https://github.com) and sign in
+2. Click your profile icon (top right)
+3. Your username appears at the top of the dropdown
+4. Or: The URL `github.com/YOUR_USERNAME` shows your profile
+
+## 15. Future Scaling Path
+
+**Current state (MVP):** Subdomain + external host. Carousel is a standalone app.
+
+**If rapid scaling requires deeper integration:**
+
+### Option A: Embed via Iframe (Medium Effort)
+Keep Squarespace, embed carousel in a page. Requires solving:
+- Scroll conflict (carousel uses page scroll, iframe traps it)
+- Fixed height container (loses responsive fullscreen)
+- Mobile touch gesture passthrough
+
+**When to consider:** If you need carousel visible alongside other Squarespace content on same page.
+
+### Option B: Replace Squarespace (Major Effort)
+Migrate entire site to a framework that can host the carousel natively.
+
+**Recommended framework:** [Astro](https://astro.build)
+- Static site generator (fast, simple hosting)
+- Supports React components as "islands" (carousel drops in directly)
+- Markdown-based content (similar simplicity to Squarespace)
+- Can recreate your current site structure
+
+**Migration path:**
+1. Export Squarespace content (Settings → Export)
+2. Scaffold Astro site with existing pages
+3. Import carousel as React component
+4. Deploy entire site to Vercel
+
+**When to consider:**
+- Squarespace limitations become blocking (custom interactions, performance)
+- You want single codebase for everything
+- 50+ cards and need programmatic page generation
+
+**Note:** An LLM assistant can help recreate your Squarespace site in Astro by analyzing the current site structure and content. This is a future session task, not MVP scope.
+
+### Design for Portability (Now)
+The carousel is already built for portability:
+- Self-contained in `/src/components/`
+- Data-driven via `data.js`
+- No Squarespace dependencies
+- Standard Vite build output
+
+No additional work needed to "prepare" for migration—it's ready when you are.
+
+## 16. Browser & Device Requirements
+
+**Minimum Requirements:**
+- WebGL 2.0 support (all modern browsers since 2017)
+- JavaScript enabled
+- Desktop: Chrome, Firefox, Safari, Edge (current versions)
+- Mobile: Works but scroll UX is suboptimal (see Known Limitations)
+
+**Known Incompatible:**
+- Internet Explorer (no WebGL 2.0)
+- Very old mobile devices (pre-2017)
+- Browsers with WebGL disabled
+
+**Testing Note:** If carousel doesn't render, check browser console for WebGL errors. Most issues are driver-related on older hardware.
+
+## 17. Production URLs
+
+**Update these after deployment:**
+
+| Environment | URL | Status |
+|-------------|-----|--------|
+| Development | `localhost:5173` | ✅ Active |
+| Staging | `pp-carousel-03.vercel.app` (or similar) | ⏳ Pending |
+| Production | `postcards.mediabyjoe.com` | ⏳ Pending |
+| Main Site | `mediabyjoe.com` | ✅ Active |
+
+## 18. Session History
+
+**Purpose:** Track major decisions and context for future coding sessions.
+
+| Date | Summary |
+|------|---------|
+| 2025-01-22 | Added deployment docs (Sections 13-17). Decided on subdomain architecture over iframe. MVP definition established. |
+
+**How to use:** Add a row after significant sessions. Helps future Claude sessions understand project evolution without re-explaining.
