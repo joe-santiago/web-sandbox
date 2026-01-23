@@ -4,7 +4,7 @@ import * as THREE from 'three'
 import { data } from '../data'
 import Card from './Card'
 
-export default function Ring({ activeId, hoveredId, onSelect, onHover }) {
+export default function Ring({ activeId, hoveredId, onSelect, onHover, onFlip }) {
   const scroll = useScroll()
 
   // FIX: Nudge scroll position on mount to enable bidirectional scrolling
@@ -82,17 +82,17 @@ export default function Ring({ activeId, hoveredId, onSelect, onHover }) {
             
             front={item.front}
             back={item.back}
-            link={item.link}
             orientation={item.orientation}
             aspectRatio={item.aspectRatio}
-            
+
             active={isActive}
             locked={isLocked}
             hovered={isHovered}
-            
+
             onPointerOver={() => onHover(item.id)}
             onPointerOut={() => onHover(null)}
             onClick={() => onSelect(item.id)}
+            onFlip={onFlip}
           />
         )
       })}

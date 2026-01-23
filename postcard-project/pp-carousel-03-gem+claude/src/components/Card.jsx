@@ -1,18 +1,21 @@
 import { useRef, useState, useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { Image, Html } from '@react-three/drei'
+import { Image } from '@react-three/drei'
 import * as THREE from 'three'
 
-export default function Card({ 
-  front, back, link, 
-  active, locked, hovered, 
-  startAngle, radius, getRotation, totalItems, zRotation, 
-  orientation, aspectRatio, 
-  ...props 
+export default function Card({
+  front, back,
+  active, locked, hovered,
+  startAngle, radius, getRotation, totalItems, zRotation,
+  orientation, aspectRatio,
+  onFlip,
+  ...props
 }) {
   const ref = useRef()
   const backRef = useRef()
   const [isFlipped, setIsFlipped] = useState(false)
+  const wasActive = useRef(false)
+  const wasFlipped = useRef(false)
 
   // 1. GEOMETRY
   const isPortrait = orientation === 'portrait'
@@ -25,9 +28,18 @@ export default function Card({
       height = 2.5 / aspectRatio;
   }
 
+  // Reset flip state when card is deselected
   useEffect(() => {
-    if (!active) setIsFlipped(false)
-  }, [active])
+    if (wasActive.current && !active) {
+      setIsFlipped(false)
+      // Only notify parent if card was actually flipped
+      if (wasFlipped.current) {
+        onFlip?.(false)
+        wasFlipped.current = false
+      }
+    }
+    wasActive.current = active
+  }, [active]) // onFlip is stable (useState setter), no need to track
   
   useFrame((state, delta) => {
     // --- 1. CALCULATE ORBIT POSITION ---
@@ -89,7 +101,10 @@ export default function Card({
     <group {...props} ref={ref} onClick={(e) => {
       e.stopPropagation()
       if (locked) {
-        setIsFlipped(!isFlipped)
+        const newFlipped = !isFlipped
+        setIsFlipped(newFlipped)
+        wasFlipped.current = newFlipped
+        onFlip?.(newFlipped)
       } else {
         props.onClick(e)
       }
@@ -114,40 +129,6 @@ export default function Card({
 
         scale={[1, 1]}
       />
-
-      {/* STORY LINK: Appears above card when flipped to back */}
-      {/* Position adjusts for orientation - portrait backs rotate 90° */}
-      {locked && isFlipped && (
-        <Html
-          position={isPortrait ? [0.6, 0, 0] : [0, 0.6, 0]}
-          center
-          style={{
-            opacity: isFlipped ? 1 : 0,
-            transition: 'opacity 0.3s ease',
-            pointerEvents: isFlipped ? 'auto' : 'none',
-          }}
-        >
-          <a
-            href={link}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              color: '#333',
-              fontSize: '16px',
-              fontFamily: "'Myfont', Georgia, serif",
-              textDecoration: 'none',
-              padding: '8px 16px',
-              backgroundColor: 'rgba(255, 255, 255, 0.9)',
-              borderRadius: '4px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            Read the Story →
-          </a>
-        </Html>
-      )}
     </group>
   )
 }

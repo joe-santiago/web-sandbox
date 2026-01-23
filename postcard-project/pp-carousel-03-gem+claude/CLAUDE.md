@@ -59,6 +59,9 @@ These caused regressions. Do not repeat.
 ✅ **Fix (Portrait):** Back texture requires `+Math.PI/2` Z-rotation.
 ✅ **Fix (Landscape):** Back texture requires `+Math.PI` Y-rotation.
 
+❌ **Multi-Instance Callbacks:** Do NOT call parent callbacks from useEffect in components that exist as multiple instances (e.g., Card in a ring). ALL instances run useEffect on mount/dependency change.
+✅ **Fix:** Use refs to track state transitions. Only call callback when THIS instance transitions (e.g., `wasActive.current && !active` plus `wasFlipped.current`).
+
 ## 5. Data Schema (data.js)
 
 `orientation` field is critical—determines which rotation logic to apply.
@@ -181,13 +184,16 @@ This informs every architectural decision: we optimize for a low-frequency, high
 
 ## 12. Story Link Feature
 
-Each card back includes a "Read the Story →" link that opens the card's story page.
+Each card back includes a "Read the Journal →" link that opens the card's journal page.
 
-**Implementation (Card.jsx):**
-- Uses Drei's `Html` component for DOM overlay
-- Appears only when card is locked AND flipped (showing back)
-- Position adjusts for portrait vs landscape orientation
+**Implementation:**
+- Fixed DOM overlay in App.jsx (not attached to 3D canvas)
+- Appears when card is locked AND flipped (`activeId && isCardFlipped`)
+- Card.jsx passes flip state up via `onFlip` callback chain (Card → Ring → App)
 - Custom font: `Myfont` (loaded from `/public/fonts/`)
+
+**Why DOM overlay (not Drei Html):**
+Drei's `Html` component projects 3D position to screen coordinates. When the ring scrolls, the 3D position changes and the link drifts. A fixed DOM overlay stays outside the 3D coordinate system, maintaining stable screen position.
 
 **URL Pattern:** `http://mediabyjoe.com/postcard-{id}`
 
@@ -335,5 +341,6 @@ No additional work needed to "prepare" for migration—it's ready when you are.
 | Date | Summary |
 |------|---------|
 | 2025-01-22 | Added deployment docs (Sections 13-17). Decided on subdomain architecture over iframe. MVP definition established. |
+| 2025-01-23 | Added instruction hints overlay with fade behavior. Moved story link from Drei Html to fixed DOM overlay (fixes scroll drift). Learned multi-instance callback pattern (wasActive/wasFlipped refs). |
 
 **How to use:** Add a row after significant sessions. Helps future Claude sessions understand project evolution without re-explaining.

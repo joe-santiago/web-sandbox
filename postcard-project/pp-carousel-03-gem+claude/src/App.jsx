@@ -36,6 +36,7 @@ export default function App() {
   const [hoveredId, setHoveredId] = useState(null)
   const [hintsVisible, setHintsVisible] = useState(true)
   const [hintsFadingOut, setHintsFadingOut] = useState(false)
+  const [isCardFlipped, setIsCardFlipped] = useState(false)
 
   // Hints: fade out 3 seconds after first interaction
   useEffect(() => {
@@ -81,6 +82,7 @@ export default function App() {
               hoveredId={hoveredId}
               onSelect={setActiveId}
               onHover={setHoveredId}
+              onFlip={setIsCardFlipped}
             />
           </ScrollControls>
         </Rig>
@@ -108,6 +110,19 @@ export default function App() {
             setHintsFadingOut(false)
           }}
         />
+      )}
+
+      {/* Story link - fixed position, shown when card is flipped */}
+      {activeId && isCardFlipped && (
+        <div className="story-link">
+          <a
+            href={`http://mediabyjoe.com/postcard-${activeId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Read the Journal →
+          </a>
+        </div>
       )}
     </>
   )
