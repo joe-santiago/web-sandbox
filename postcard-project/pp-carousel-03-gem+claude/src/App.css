@@ -40,3 +40,52 @@
 .read-the-docs {
   color: #888;
 }
+
+/* Hints overlay */
+.hints-overlay {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.75);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  z-index: 1000;
+  opacity: 1;
+  transition: opacity 0.8s ease-out;
+}
+
+.hints-overlay.fading-out {
+  opacity: 0;
+}
+
+.hints-overlay p {
+  margin: 0;
+}
+
+/* Invisible hover zone to bring hints back */
+.hints-hover-zone {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 400px;
+  height: 60px;
+  z-index: 999;
+}
+
+/* Mobile adjustments */
+@media (max-width: 480px) {
+  .hints-overlay {
+    font-size: 12px;
+    padding: 10px 16px;
+    max-width: 90vw;
+  }
+
+  .hints-hover-zone {
+    width: 100%;
+  }
+}

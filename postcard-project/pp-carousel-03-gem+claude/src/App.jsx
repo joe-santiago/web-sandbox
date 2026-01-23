@@ -3,7 +3,7 @@ import { ScrollControls } from '@react-three/drei'
 import * as THREE from 'three'
 import Ring from './components/Ring'
 import './App.css'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 function Rig({ children }) {
   const { size } = useThree()
@@ -34,27 +34,81 @@ function Rig({ children }) {
 export default function App() {
   const [activeId, setActiveId] = useState(null)
   const [hoveredId, setHoveredId] = useState(null)
+  const [hintsVisible, setHintsVisible] = useState(true)
+  const [hintsFadingOut, setHintsFadingOut] = useState(false)
+
+  // Hints: fade out 3 seconds after first interaction
+  useEffect(() => {
+    if (!hintsVisible || hintsFadingOut) return
+
+    let timeoutId = null
+
+    const startFadeOut = () => {
+      timeoutId = setTimeout(() => {
+        setHintsFadingOut(true)
+      }, 3000)
+    }
+
+    window.addEventListener('scroll', startFadeOut, { once: true, passive: true })
+    window.addEventListener('wheel', startFadeOut, { once: true, passive: true })
+    window.addEventListener('touchstart', startFadeOut, { once: true, passive: true })
+    window.addEventListener('click', startFadeOut, { once: true })
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId)
+      window.removeEventListener('scroll', startFadeOut)
+      window.removeEventListener('wheel', startFadeOut)
+      window.removeEventListener('touchstart', startFadeOut)
+      window.removeEventListener('click', startFadeOut)
+    }
+  }, [hintsVisible, hintsFadingOut])
 
   return (
-    // ON POINTER MISSED: If user clicks background, unlock the card (setActiveId(null))
-    <Canvas 
-      camera={{ position: [0, 0, 30], fov: 30 }}
-      onPointerMissed={() => setActiveId(null)}
-    >
-      <color attach="background" args={['#f0f0f0']} />
-      <ambientLight intensity={0.8} />
-      <directionalLight position={[10, 10, 5]} intensity={1} />
-      
-      <Rig>
-        <ScrollControls pages={4} infinite>
-          <Ring 
-            activeId={activeId} 
-            hoveredId={hoveredId}
-            onSelect={setActiveId}
-            onHover={setHoveredId}
-          />
-        </ScrollControls>
-      </Rig>
-    </Canvas>
+    <>
+      {/* Canvas - 3D Scene */}
+      <Canvas
+        camera={{ position: [0, 0, 30], fov: 30 }}
+        onPointerMissed={() => setActiveId(null)}
+      >
+        <color attach="background" args={['#f0f0f0']} />
+        <ambientLight intensity={0.8} />
+        <directionalLight position={[10, 10, 5]} intensity={1} />
+
+        <Rig>
+          <ScrollControls pages={4} infinite>
+            <Ring
+              activeId={activeId}
+              hoveredId={hoveredId}
+              onSelect={setActiveId}
+              onHover={setHoveredId}
+            />
+          </ScrollControls>
+        </Rig>
+      </Canvas>
+
+      {/* Hints overlay - hover to show again after fade */}
+      {hintsVisible && (
+        <div
+          className={`hints-overlay ${hintsFadingOut ? 'fading-out' : ''}`}
+          onMouseEnter={() => setHintsFadingOut(false)}
+          onTransitionEnd={() => {
+            if (hintsFadingOut) setHintsVisible(false)
+          }}
+        >
+          <p>Swipe up to go right • Swipe down to go left • Tap card to select • Tap again to flip</p>
+        </div>
+      )}
+
+      {/* Hover zone to bring hints back */}
+      {!hintsVisible && (
+        <div
+          className="hints-hover-zone"
+          onMouseEnter={() => {
+            setHintsVisible(true)
+            setHintsFadingOut(false)
+          }}
+        />
+      )}
+    </>
   )
 }

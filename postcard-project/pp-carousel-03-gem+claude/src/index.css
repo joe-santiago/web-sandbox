@@ -22,3 +22,12 @@ html, body, #root {
   overflow: hidden; /* Prevents scrollbars on the body */
   background-color: #f0f0f0; /* Match the canvas background for safety */
 }
+
+/* Hide scrollbar from ScrollControls (drei) */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+*::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Opera */
+}
